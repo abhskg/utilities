@@ -2,8 +2,8 @@
 Clipboard Access Example with GUI using tkinter
 
 This script provides a graphical interface for:
-- Reading the current clipboard content
-- Setting new content to the clipboard
+- Viewing the last 10 clipboard items
+- Setting any historical item as the current clipboard content
 - Monitoring clipboard changes
 """
 
@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import time
 import threading
+from collections import deque
 
 class ClipboardApp:
     def __init__(self, root):
@@ -21,30 +22,39 @@ class ClipboardApp:
         
         self.monitoring = False
         self.monitor_thread = None
+        self.clipboard_history = deque(maxlen=10)  # Store last 10 clipboard items
+        self.history_frames = []  # To track the frames displaying history items
         
         self.setup_gui()
     
     def setup_gui(self):
-        # Frame for current clipboard content
-        current_frame = tk.LabelFrame(self.root, text="Current Clipboard Content")
-        current_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        # Frame for clipboard history
+        history_frame = tk.LabelFrame(self.root, text="Clipboard History (Last 10 Items)")
+        history_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
         
-        self.clipboard_display = scrolledtext.ScrolledText(current_frame, wrap=tk.WORD, height=5)
-        self.clipboard_display.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
+        # Container for history items
+        self.history_container = tk.Frame(history_frame)
+        self.history_container.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
+        
+        # Add a scrollbar to the history container
+        history_canvas = tk.Canvas(self.history_container)
+        scrollbar = tk.Scrollbar(self.history_container, orient="vertical", command=history_canvas.yview)
+        self.scrollable_frame = tk.Frame(history_canvas)
+        
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: history_canvas.configure(scrollregion=history_canvas.bbox("all"))
+        )
+        
+        history_canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        history_canvas.configure(yscrollcommand=scrollbar.set)
+        
+        history_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
         
         # Refresh button
-        refresh_btn = tk.Button(current_frame, text="Refresh", command=self.refresh_clipboard)
+        refresh_btn = tk.Button(history_frame, text="Refresh", command=self.refresh_clipboard)
         refresh_btn.pack(padx=5, pady=5)
-        
-        # Frame for setting clipboard content
-        set_frame = tk.LabelFrame(self.root, text="Set Clipboard Content")
-        set_frame.pack(padx=10, pady=10, fill=tk.X)
-        
-        self.new_content = tk.Entry(set_frame, width=50)
-        self.new_content.pack(padx=5, pady=5, fill=tk.X)
-        
-        set_btn = tk.Button(set_frame, text="Copy to Clipboard", command=self.set_clipboard)
-        set_btn.pack(padx=5, pady=5)
         
         # Frame for monitoring
         monitor_frame = tk.LabelFrame(self.root, text="Clipboard Monitor")
@@ -79,21 +89,48 @@ class ClipboardApp:
         self.root.update()  # Required to finalize clipboard changes
     
     def refresh_clipboard(self):
-        """Refresh the clipboard display."""
+        """Refresh the clipboard display and update history."""
         clipboard_content = self.get_clipboard_text()
-        self.clipboard_display.delete(1.0, tk.END)
-        self.clipboard_display.insert(tk.END, clipboard_content)
+        
+        # Only add to history if it's different from the most recent item
+        if not self.clipboard_history or clipboard_content != self.clipboard_history[0]:
+            self.clipboard_history.appendleft(clipboard_content)
+            self.update_history_display()
+        
         self.status_var.set(f"Clipboard content refreshed at {time.strftime('%H:%M:%S')}")
     
-    def set_clipboard(self):
-        """Set clipboard to the entered text."""
-        new_text = self.new_content.get()
-        if new_text:
-            self.set_clipboard_text(new_text)
-            self.refresh_clipboard()
-            self.status_var.set(f"Text copied to clipboard at {time.strftime('%H:%M:%S')}")
-        else:
-            self.status_var.set("Please enter text to copy")
+    def update_history_display(self):
+        """Update the history display with current clipboard history."""
+        # Clear existing history frames
+        for frame in self.history_frames:
+            frame.destroy()
+        self.history_frames = []
+        
+        # Create a new frame for each history item
+        for i, content in enumerate(self.clipboard_history):
+            item_frame = tk.Frame(self.scrollable_frame)
+            item_frame.pack(fill=tk.X, padx=5, pady=2)
+            self.history_frames.append(item_frame)
+            
+            # Truncate long content for display
+            display_content = content if len(content) < 50 else content[:47] + "..."
+            
+            # Label to show the clipboard content
+            label = tk.Label(item_frame, text=display_content, anchor="w", justify=tk.LEFT)
+            label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            
+            # Button to set this item as the current clipboard
+            use_btn = tk.Button(
+                item_frame, 
+                text="Use", 
+                command=lambda c=content: self.use_history_item(c)
+            )
+            use_btn.pack(side=tk.RIGHT)
+    
+    def use_history_item(self, content):
+        """Set a history item as the current clipboard content."""
+        self.set_clipboard_text(content)
+        self.status_var.set(f"Clipboard set to selected item at {time.strftime('%H:%M:%S')}")
     
     def toggle_monitoring(self):
         """Start or stop clipboard monitoring."""
@@ -123,6 +160,7 @@ class ClipboardApp:
                 
                 # Update UI in the main thread
                 self.root.after(0, self.update_monitor_display, message)
+                self.root.after(0, self.refresh_clipboard)  # Also update the history
                 last_value = current_value
             
             time.sleep(0.5)
