@@ -54,7 +54,7 @@ def main():
             
             current_value = get_clipboard_text(root)
             if current_value != last_value:
-                print(f"Clipboard changed to: {current_value}")
+                print(f"[{time.strftime('%H:%M:%S')}] Clipboard changed to: {current_value}")
                 last_value = current_value
             time.sleep(0.5)
     except KeyboardInterrupt:

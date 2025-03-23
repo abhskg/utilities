@@ -28,6 +28,52 @@ Run any script with:
 python script_name.py
 ```
 
+## Setting Up Aliases
+
+Create aliases to run the scripts more easily:
+
+### Windows
+
+#### PowerShell
+
+Add to your PowerShell profile (`$PROFILE`):
+
+```powershell
+function Get-Clipboard-Py { python path\to\pyperclip_example.py }
+function Get-Clipboard-Win32 { python path\to\win32clipboard_example.py }
+function Get-Clipboard-Tk { python path\to\tkinter_clipboard_example.py }
+
+Set-Alias -Name pyclip -Value Get-Clipboard-Py
+Set-Alias -Name win32clip -Value Get-Clipboard-Win32
+Set-Alias -Name tkclip -Value Get-Clipboard-Tk
+```
+
+#### Command Prompt
+
+Create a batch file (e.g., `clipboard_aliases.bat`):
+
+```batch
+@echo off
+doskey pyclip=python path\to\pyperclip_example.py $*
+doskey win32clip=python path\to\win32clipboard_example.py $*
+doskey tkclip=python path\to\tkinter_clipboard_example.py $*
+```
+
+Add to registry to run at startup or call the batch file when opening CMD.
+
+### macOS/Linux
+
+Add to your `.bashrc`, `.zshrc`, or equivalent:
+
+```bash
+# Clipboard aliases
+alias pyclip="python /path/to/pyperclip_example.py"
+alias win32clip="python /path/to/win32clipboard_example.py"
+alias tkclip="python /path/to/tkinter_clipboard_example.py"
+```
+
+After editing, run `source ~/.bashrc` or restart your terminal to apply changes.
+
 ## Features Comparison
 
 | Feature | pyperclip | win32clipboard | tkinter |
