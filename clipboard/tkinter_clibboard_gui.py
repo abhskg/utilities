@@ -17,10 +17,11 @@ class ClipboardApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Clipboard Manager")
-        self.root.geometry("600x500")
-        self.root.minsize(500, 400)
+        # Increase window size to ensure all elements are visible
+        self.root.geometry("700x600")
+        self.root.minsize(600, 500)
         
-        self.monitoring = False
+        self.monitoring = False  # Start with monitoring off
         self.monitor_thread = None
         self.clipboard_history = deque(maxlen=10)  # Store last 10 clipboard items
         self.history_frames = []  # To track the frames displaying history items
@@ -28,9 +29,13 @@ class ClipboardApp:
         self.setup_gui()
     
     def setup_gui(self):
-        # Frame for clipboard history
-        history_frame = tk.LabelFrame(self.root, text="Clipboard History (Last 10 Items)")
-        history_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        # Main container to manage proportions
+        main_container = tk.Frame(self.root)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Frame for clipboard history (less expansion weight)
+        history_frame = tk.LabelFrame(main_container, text="Clipboard History (Last 10 Items)")
+        history_frame.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
         
         # Container for history items
         self.history_container = tk.Frame(history_frame)
@@ -56,15 +61,26 @@ class ClipboardApp:
         refresh_btn = tk.Button(history_frame, text="Refresh", command=self.refresh_clipboard)
         refresh_btn.pack(padx=5, pady=5)
         
-        # Frame for monitoring
-        monitor_frame = tk.LabelFrame(self.root, text="Clipboard Monitor")
-        monitor_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        # Frame for monitoring (smaller, fixed height)
+        monitor_frame = tk.LabelFrame(main_container, text="Clipboard Monitor")
+        # Using pack_propagate(False) to maintain a minimum size regardless of content
+        monitor_frame.pack(padx=5, pady=5, fill=tk.BOTH, expand=False)
+        monitor_frame.configure(height=200)  # Fixed height for the monitor section
+        monitor_frame.pack_propagate(False)
         
-        self.monitor_display = scrolledtext.ScrolledText(monitor_frame, wrap=tk.WORD, height=10)
+        # Monitor display with reduced height
+        self.monitor_display = scrolledtext.ScrolledText(monitor_frame, wrap=tk.WORD, height=6)
         self.monitor_display.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
         
-        self.monitor_btn = tk.Button(monitor_frame, text="Start Monitoring", command=self.toggle_monitoring)
-        self.monitor_btn.pack(padx=5, pady=5)
+        # Button container to ensure button visibility
+        button_frame = tk.Frame(monitor_frame)
+        button_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Monitoring button with more prominence
+        self.monitor_btn = tk.Button(button_frame, text="Start Monitoring", 
+                                     command=self.toggle_monitoring,
+                                     height=1, width=15)  # Fixed size for button
+        self.monitor_btn.pack(side=tk.LEFT, padx=5)
         
         # Status bar
         self.status_var = tk.StringVar()
