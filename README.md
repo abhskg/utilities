@@ -33,42 +33,6 @@ Run it with:
 python clipboard/tkinter_clibboard_gui.py
 ```
 
-## Planned Utilities
-
-The following utilities are planned for future releases:
-
-### File Management
-- File synchronization tools
-- Duplicate file finder
-- Batch file renaming utility
-- Directory comparison tool
-
-### System Monitoring
-- CPU/Memory usage monitor
-- Disk space analyzer
-- Network traffic monitor
-- Process manager
-
-### Automation Tools
-- Task scheduler
-- Keyboard/mouse macro recorder
-- Batch file processor
-- System backup utility
-
-### Text Processing
-- Text format converter
-- Regex search and replace tool
-- Code snippet manager
-- Markdown processor
-
-## Installation
-
-Each utility has its own installation requirements. Please refer to the specific utility's documentation for detailed installation instructions.
-
-Global requirements:
-- Python 3.6+
-- pip (Python package manager)
-
 ## Usage
 
 Utilities are organized in separate directories with their own documentation and examples. Navigate to the specific utility directory to learn more about its usage.
