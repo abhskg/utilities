@@ -20,7 +20,7 @@ Tools for accessing and manipulating clipboard content across different operatin
 ## Features Overview
 
 ### Clipboard Manager GUI
-![Clipboard Manager Screenshot](https://via.placeholder.com/600x400?text=Clipboard+Manager+Screenshot)
+![Clipboard Manager Screenshot](clipboard\images\tkinter_clipboard.png)
 
 The Clipboard Manager provides a user-friendly interface for:
 - Viewing clipboard history (last 10 unique items)
